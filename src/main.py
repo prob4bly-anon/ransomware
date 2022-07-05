@@ -2,7 +2,7 @@ import os
 try:
     from cryptography.fernet import Fernet
 except:
-    os.system("pip install cryptography")
+    os.system("pip install Rust cryptography")
 import sys
 try:
     import requests
